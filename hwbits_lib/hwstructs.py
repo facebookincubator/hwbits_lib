@@ -145,21 +145,21 @@ class DataStruct(metaclass=DataStructMeta):  # pyre-ignore
         else:
             self._data = buf.read(self.__static_size)
         if len(self._data) < self.__static_size:
-            raise IOError("Stream data is shorter than struct: "
+            raise IOError(5, "Stream data is shorter than struct: "
                             f"{len(self._data)} < {self.__static_size}")
 
         if self.__dyn_size_member:
             ds = getattr(self, self.__dyn_size_member)
             if ds < self.__static_size:
-                raise IOError("Computed dynamic size is less than static: ",
-                              f"{self.__dyn_size_member}={ds} < {self.__static_size}")
+                raise ValueError("Computed dynamic size is less than static: "
+                                 f"{self.__dyn_size_member}={ds} < {self.__static_size}")
             else:
                 if isinstance(buf, memoryview):
                     self._data = buf[:ds]
                 else:
                     self._data += buf.read(ds - self.__static_size)
                 if len(self._data) < ds:
-                    raise IOError("Stream data is shorter than expected: ",
+                    raise IOError(5, "Stream data is shorter than expected: "
                                   f"{len(self._data)} < {ds}")
 
         for name, descr in self.__iter_members():
@@ -432,7 +432,7 @@ class ParentBody(DataStructExtraData):
         if not isinstance(data._data, memoryview):
             raise TypeError("ParentBody only works in nested structs")
         parent_data = data._data.obj
-        if offset + length > len(parent_data):  # pyre-ignore
+        if offset + length > len(parent_data):
             raise IndexError(f"Not enough data for {name} at data[{offset} + {length}]")
 
     def _init_extra(self, data: DataStruct):
